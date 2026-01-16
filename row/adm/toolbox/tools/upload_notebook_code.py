@@ -3,7 +3,7 @@ import zipfile
 from pathlib import Path
 import keyring
 from arcgis.gis import GIS
-import row.constants as c
+import row.usr.constants as c
 
 
 BASE_DIR = Path(c.CODE_BASE)

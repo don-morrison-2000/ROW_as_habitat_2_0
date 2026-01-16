@@ -8,35 +8,51 @@ import pytz
 import datetime as dt
 import arcpy
 
-import row.notebook.constants as c
+import row.usr.constants as c
 
-def get_item_spec (item_spec_id):
-    return [s for s in c.ITEM_SPECS if s['id'] == item_spec_id][0]
+def get_item_registry_spec (item_registry_tag):
+    return [s for s in c.ORG_ITEMS_REGISTRY if s['tag'] == item_registry_tag][0]
 
-def get_item_layer_spec (item_spec, item_layer_spec_id):
-    return [l for l in item_spec['layers'] if l['id'] == item_layer_spec_id][0]
+# def get_item_layer_spec (item_spec, item_layer_spec_id):
+#     return [l for l in item_spec['layers'] if l['id'] == item_layer_spec_id][0]
 
-def get_org_layer (gis, item_spec_id, item_layer_spec_id, org_id):
-    item_spec = get_item_spec (item_spec_id)
-    item_layer_spec = get_item_layer_spec (item_spec, item_layer_spec_id)
-    org_item = get_org_item (gis, item_spec['title'],  item_spec['type'], org_id)
-    if len(org_item.layers) > 0:
-        org_layer = [l for l in org_item.layers if l.properties['name'] == item_layer_spec['title']]
-        if len(org_layer) == 1:
-            return org_layer[0]
-    if len(org_item.tables) > 0:
-        org_table = [t for t in org_item.tables if t.properties['name'] == item_layer_spec['title']]
-        if len(org_table) == 1:
-            return org_table[0]
-    raise Exception (f"Could not find {org_id} layer '{item_layer_spec['title']}' in {item_spec['type']} '{item_spec['title']}'")
+# def get_org_layer (gis, item_spec_id, item_layer_spec_id, org_id):
+#     item_spec = get_item_spec (item_spec_id)
+#     item_layer_spec = get_item_layer_spec (item_spec, item_layer_spec_id)
+#     org_item = get_org_item (gis, item_spec['title'],  item_spec['type'], org_id)
+#     if len(org_item.layers) > 0:
+#         org_layer = [l for l in org_item.layers if l.properties['name'] == item_layer_spec['title']]
+#         if len(org_layer) == 1:
+#             return org_layer[0]
+#     if len(org_item.tables) > 0:
+#         org_table = [t for t in org_item.tables if t.properties['name'] == item_layer_spec['title']]
+#         if len(org_table) == 1:
+#             return org_table[0]
+#     raise Exception (f"Could not find {org_id} layer '{item_layer_spec['title']}' in {item_spec['type']} '{item_spec['title']}'")
             
 
-def get_org_item (gis, title, item_type, org_id):
-    query_string = f"title:{title} AND owner:row_admin AND tags:{org_id.lower()} AND type:{item_type}"
+def get_org_layer (gis, item, layer_idx):
+    layer = [l for l in item.layers + item.tables if l['id'] == layer_idx]
+    if len(layer) == 1:
+        return layer[0]
+    raise Exception (f"Could not find layer '{item.type}' in {item.type} '{item.title}'")
+
+
+def get_org_item (gis, tag, org_id):
+    query_string = f"owner:row_admin AND tags:{org_id.lower()},{tag}"
     for item in gis.content.search(query=query_string, max_items=-1):
-        if item.title == title and item.owner == 'ROW_Admin' and org_id.lower() in item.tags:
+        if item.owner == c.AGOL_OWNER_ID and org_id.lower() in item.tags and tag in item.tags:
             return gis.content.get(item.id)
-    raise Exception (f"Can not access {org_id} {item_type} '{title}' as user {gis.users.me.username}")
+    raise Exception (f"Can not access {org_id} item with '{tag}' tag as user {gis.users.me.username}")
+
+
+
+# def get_org_item (gis, item_registry_spec, org_id):
+#     query_string = f"owner:row_admin AND tags:{org_id.lower()},{item_registry_spec['tag']} AND type:{item_registry_spec['type']}"
+#     for item in gis.content.search(query=query_string, max_items=-1):
+#         if item.owner == c.AGOL_OWNER_ID and org_id.lower() in item.tags and item_registry_spec['tag'] in item.tags:
+#             return gis.content.get(item.id)
+#     raise Exception (f"Can not access {org_id} {item_registry_spec['type']} '{item_registry_spec['tag']}' as user {gis.users.me.username}")
 
 
 def write_output_parameter_string (parm_name, value):

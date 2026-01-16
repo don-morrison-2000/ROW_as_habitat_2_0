@@ -2,10 +2,11 @@
 import arcpy
 import os, sys
 from arcgis.gis import GIS
-import row.logger
-logger = row.logger.get('row_log')
+import row.usr.logger
+logger = row.usr.logger.get('row_log')
 import keyring
-import row.constants as c
+import row.usr.constants as c
+import row.migration.migration_specs
 
 
 DB_DIR = r'C:\Users\dmorri28\Documents\ArcGIS\Projects\MyProject\CC-SQL2k16-ERC-SDE.sde'
@@ -13,10 +14,10 @@ DB_PREFIX = 'ROW_Habitat.SDE.'
 
 def run(gis, source_org_id, target_org_id):
 
-    for item_spec in [i for i in c.ITEM_SPECS if i['type'] ==  'Feature Service']:
-            logger.info (f"Processing: {item_spec['title']}")
-            agol_item = [i for i in gis.users.me.items(folder=target_org_id, max_items=1000) if i.title==item_spec['title'] and i.type==item_spec['type']][0]
-            for layer_spec in item_spec['layers']:
+    for migration_spec in [m for m in row.migration.migration_specs.MIGRATION_SPECS if m['type'] ==  'Feature Service']:
+            logger.info (f"Processing: {migration_spec['title']}")
+            agol_item = [i for i in gis.users.me.items(folder=target_org_id, max_items=1000) if i.title==migration_spec['title'] and i.type==migration_spec['type']][0]
+            for layer_spec in migration_spec['layers']:
 
                 logger.info (f"Processing layer: {layer_spec['title']}")
                 db_path = os.path.join(DB_DIR, DB_PREFIX + layer_spec['sde_source'])
@@ -48,8 +49,8 @@ if __name__ == '__main__':
     TARGET_AGOL_ORG = c.MODEL_ORG_ID
     #TARGET_AGOL_ORG = 'ROW2_DEVOrgB'
     
-    logger.info ("Logging to %s" % row.logger.LOG_FILE)
+    logger.info ("Logging to %s" % row.usr.logger.LOG_FILE)
     gis = GIS("https://www.arcgis.com", c.AGOL_OWNER_ID, keyring.get_password('AGOL', c.AGOL_OWNER_ID))
 
-    run(gis, SOURCE_SDE_ORG, TARGET_AGOL_ORG)
+    run (gis, SOURCE_SDE_ORG, TARGET_AGOL_ORG)
 

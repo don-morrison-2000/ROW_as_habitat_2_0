@@ -2,25 +2,16 @@ import arcpy
 import os, sys
 from arcgis.gis import GIS
 import arcgis.features
-import row.logger
-logger = row.logger.get('row_log')
-import keyring
+from  arcgis.gis import SharingLevel
+import row.adm.utils
+import row.usr.logger
+logger = row.usr.logger.get('row_log')
 import json
 
 
-import row.constants as c
+import row.usr.constants as c
 
-def is_folder_exists (folder_name):
-    return folder_name in [f['title'] for f in gis.users.me.folders]
 
-# def get_item_from_item_spec (gis, org_id, item_spec):
-#     items = [i for i in gis.users.me.items(folder=org_id, max_items=1000) if i.title==item_spec['title'] and i.type==item_spec['type']]
-#     if len(items) == 1:
-#         return items[0]
-#     elif len(items) == 0:
-#         return None
-#     else:
-#         raise Exception ("Duplicate items. Org: {org_id}, Title: {item_spec['title']}, Type: {item_spec['type']}")
     
 # Recursively scan all json nodes replacing any strings that show up in the
 # list of replacement 2-tuples (old,new)
@@ -45,23 +36,16 @@ def __fixup_item_spec (json_node, replacements, path):
 
 
 
-def get_clone_tag (item):
-    clone_tags = [t for t in item.tags if t.startswith(c.CLONE_TAG_ROOT)]
-    if len(clone_tags) == 0:
-        return None
-    elif len(clone_tags) == 1:
-        return clone_tags[0]
-    else:
-        raise Exception ("{item} has duplicate clone tags: {target_items}")
+
 
 
 # Maps clone tag to a source item a target item
 def get_clone_tag_map (source_items, target_items):
     clone_tag_map = dict()
     for source_item in source_items:
-        tag = get_clone_tag(source_item)
+        tag = row.adm.utils.get_clone_tag(source_item)
         if tag is not None:
-            target_match_items = [t for t in target_items if get_clone_tag(t) == tag]
+            target_match_items = [t for t in target_items if row.adm.utils.get_clone_tag(t) == tag]
             if len(target_match_items) == 1:
                 clone_tag_map[tag] = (source_item.id, target_match_items[0].id)
             elif len(target_match_items) > 1:
@@ -169,14 +153,55 @@ def __update_feature_service (source_item, target_item):
     for i in range(0,len(source_item.tables)):        
         __propagate_field_infos (source_item.tables[i].properties['fields'], target_item.tables[i].properties['fields'], target_item.tables[i].manager)
 
-   
+    return
+
+
+
+
+def __update_item_sharing_level (gis, target_item, target_org_id):
+    org_spec = row.adm.utils.get_org_spec (target_org_id)
+    item_spec = row.adm.utils.get_item_registry_spec (target_item)
+    if item_spec['allow_extended_sharing']:
+        new_sharing_level = org_spec['extended_sharing_level']
+    else:
+        new_sharing_level = SharingLevel.PRIVATE
+    if target_item.sharing.sharing_level != new_sharing_level:
+        logger.info (f"Updating {target_item.type} '{target_item.title}' sharing level to '{new_sharing_level}'")
+        target_item.sharing.sharing_level = new_sharing_level
+    return
+
+
+def __update_item_group_sharing_level (gis, target_org_id, target_item):
+
+    for group_spec in c.GROUP_SPECS:
+        group = row.adm.utils.get_org_group_from_tag (gis, target_org_id, group_spec['tag'])
+        if group is None:
+            title = group_spec['title'].replace('!ORG_ID!', target_org_id).replace('!ORG_NAME!', target_org_id)
+            tags = f"{c.GROUP_TAG_ROOT}{group_spec['tag']}, {target_org_id}"
+            description=group_spec['description'].replace('!ORG_ID!', target_org_id).replace('!ORG_NAME!', target_org_id)
+            logger.info (f"Creating {target_org_id} group '{title}'")
+            group = gis.groups.create(title, tags, description)
+
+    current_org_groups = {g.id: g for g in gis.groups.search(f"owner:ROW_Admin AND tags:{target_org_id}")}
+    current_item_shares  = {g.id: g for g in target_item.sharing.groups.list()}
+    sharing_tags = row.adm.utils.get_item_registry_spec(target_item)['group_sharing']
+    for group_id in current_org_groups.keys():
+        group_tag = row.adm.utils.get_group_tag(current_org_groups[group_id])
+        if group_tag is not None:
+            if group_tag not in sharing_tags and group_id in current_item_shares.keys():
+                logger.info (f"Removing {target_item.type} '{target_item.title}' from group '{current_org_groups[group_id]}'")
+                target_item.sharing.groups.remove(current_org_groups[group_id])
+            elif group_tag in sharing_tags and group_id not in current_item_shares.keys():
+                logger.info (f"Adding {target_item.type} '{target_item.title}' to group '{current_org_groups[group_id]}'")
+                target_item.sharing.groups.add(current_org_groups[group_id])
+
     return
 
 
 
 def run(gis, source_org_id, target_org_id):
 
-    if not is_folder_exists (target_org_id):
+    if not row.adm.utils.is_folder_exists (gis, target_org_id):
         logger.info (f"Creating folder: {target_org_id}")
         gis.content.folders.create(target_org_id)
 
@@ -187,10 +212,10 @@ def run(gis, source_org_id, target_org_id):
 
     text_replacements = [(source_org_id, target_org_id), (c.ORGS[source_org_id]['name'], c.ORGS[target_org_id]['name'])]
 
-    for source_item in [i for i in source_items if get_clone_tag(i) is not None]:
-        clone_tag = get_clone_tag(source_item)
+    for source_item in [i for i in source_items if row.adm.utils.get_clone_tag(i) is not None]:
+        clone_tag = row.adm.utils.get_clone_tag(source_item)
 
-        target_match_items = [i for i in target_items if get_clone_tag(i) == clone_tag]
+        target_match_items = [i for i in target_items if row.adm.utils.get_clone_tag(i) == clone_tag]
         if len(target_match_items) == 0:
             target_item = __create_new_item (gis, source_item, target_org_id)
             clone_tag_map[clone_tag] = (source_item.id, target_item.id)
@@ -205,7 +230,7 @@ def run(gis, source_org_id, target_org_id):
             'title':        __fixup_item_spec (source_item.title, text_replacements, []), 
             'snippet':      __fixup_item_spec (source_item.snippet, text_replacements, []), 
             'description':  __fixup_item_spec (source_item.description, text_replacements, []),
-            'tags':         [clone_tag, target_org_id], 
+            'tags':         [clone_tag, target_org_id.lower()], 
             'typeKeywords': source_item.typeKeywords,
             'categories':   source_item.categories,
             })
@@ -221,6 +246,10 @@ def run(gis, source_org_id, target_org_id):
 
         __update_item_resource_files (source_item, target_item)
 
+        __update_item_sharing_level (gis, target_item, target_org_id)
+
+        __update_item_group_sharing_level (gis, target_org_id, target_item)
+
     delete_items = [i for i in target_items if i.id not in [id[1] for id in clone_tag_map.values()]]
     for delete_item in delete_items:
         logger.info (f"Deleting: {delete_item}")
@@ -234,8 +263,8 @@ if __name__ == '__main__':
     SOURCE_SDE_ORG = c.MODEL_ORG_ID
     TARGET_AGOL_ORG = 'ROW2_DEVOrgB'
 
-    logger.info ("Logging to %s" % row.logger.LOG_FILE)
-    gis = GIS("https://www.arcgis.com", c.AGOL_OWNER_ID, keyring.get_password('AGOL', c.AGOL_OWNER_ID))
+    logger.info ("Logging to %s" % row.usr.logger.LOG_FILE)
+    gis = row.adm.utils.login_as_admin ()
 
     #run(gis, SOURCE_SDE_ORG, TARGET_AGOL_ORG)
     run (gis, SOURCE_SDE_ORG, TARGET_AGOL_ORG)

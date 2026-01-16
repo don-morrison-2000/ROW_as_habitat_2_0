@@ -1,4 +1,4 @@
-import row.constants as c
+import row.usr.constants as c
 import row.notebook.common
 from arcgis.gis import GIS
 import arcpy
