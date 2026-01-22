@@ -1,5 +1,7 @@
-import row.usr.constants as c
+import row.constants as c
+import row.registry
 import row.notebook.common
+import row.utils
 from arcgis.gis import GIS
 import arcpy
 import os
@@ -20,7 +22,9 @@ def run (gis, org_id):
     result = records = ''
 
     try:
-        test_lyr = row.notebook.common.get_org_layer (gis, 'ORG_EDITABLE', 'ORG_EDITABLE_MGT_AREAS', org_id)
+
+        item = row.utils.get_item (gis, row.registry.ORG_ITEM_TAG_SCORECARDS, org_id)
+        test_lyr = row.utils.get_layer (gis, item, 0)
         
         records = f'ORG ID: {org_id}\n'
         for f in test_lyr.query(where='1=1', out_fields='OBJECTID, Notes', return_geometry=False):

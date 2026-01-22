@@ -8,10 +8,12 @@ import pytz
 import datetime as dt
 import arcpy
 
-import row.usr.constants as c
+import row.constants as c
+import row.registry
+import row.utils
 
 def get_item_registry_spec (item_registry_tag):
-    return [s for s in c.ORG_ITEMS_REGISTRY if s['tag'] == item_registry_tag][0]
+    return [s for s in row.registry.ORG_ITEMS_REGISTRY if s['tag'] == item_registry_tag][0]
 
 # def get_item_layer_spec (item_spec, item_layer_spec_id):
 #     return [l for l in item_spec['layers'] if l['id'] == item_layer_spec_id][0]
@@ -31,19 +33,8 @@ def get_item_registry_spec (item_registry_tag):
 #     raise Exception (f"Could not find {org_id} layer '{item_layer_spec['title']}' in {item_spec['type']} '{item_spec['title']}'")
             
 
-def get_org_layer (gis, item, layer_idx):
-    layer = [l for l in item.layers + item.tables if l['id'] == layer_idx]
-    if len(layer) == 1:
-        return layer[0]
-    raise Exception (f"Could not find layer '{item.type}' in {item.type} '{item.title}'")
 
 
-def get_org_item (gis, tag, org_id):
-    query_string = f"owner:row_admin AND tags:{org_id.lower()},{tag}"
-    for item in gis.content.search(query=query_string, max_items=-1):
-        if item.owner == c.AGOL_OWNER_ID and org_id.lower() in item.tags and tag in item.tags:
-            return gis.content.get(item.id)
-    raise Exception (f"Can not access {org_id} item with '{tag}' tag as user {gis.users.me.username}")
 
 
 

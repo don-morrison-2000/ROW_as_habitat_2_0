@@ -8,10 +8,10 @@ import arcpy
 import os, sys
 from arcgis.gis import GIS
 from arcgis.features import FeatureLayerCollection
-import row.usr.logger
-logger = row.usr.logger.get('row_log')
+import row.logger
+logger = row.logger.get('row_log')
 
-import row.usr.constants as c
+import row.constants as c
 import row.migration.migration_specs 
 
 import shutil
@@ -147,7 +147,7 @@ def __publish_fgdb (gis, fgdb, migration_spec):
 
 
 def run():
-    logger.info ("Logging to %s" % row.usr.logger.LOG_FILE)
+    logger.info ("Logging to %s" % row.logger.LOG_FILE)
 
     gis = GIS("https://www.arcgis.com", c.AGOL_OWNER_ID, keyring.get_password('AGOL', c.AGOL_OWNER_ID))
 

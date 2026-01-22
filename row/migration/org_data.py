@@ -2,10 +2,10 @@
 import arcpy
 import os, sys
 from arcgis.gis import GIS
-import row.usr.logger
-logger = row.usr.logger.get('row_log')
+import row.logger
+logger = row.logger.get('row_log')
 import keyring
-import row.usr.constants as c
+import row.constants as c
 import row.migration.migration_specs
 
 
@@ -46,10 +46,10 @@ def run(gis, source_org_id, target_org_id):
 
 if __name__ == '__main__':
     SOURCE_SDE_ORG = 'DEVOrgB'
-    TARGET_AGOL_ORG = c.MODEL_ORG_ID
-    #TARGET_AGOL_ORG = 'ROW2_DEVOrgB'
+    #TARGET_AGOL_ORG = c.MODEL_ORG_ID
+    TARGET_AGOL_ORG = 'ROW2_DEVOrgA'
     
-    logger.info ("Logging to %s" % row.usr.logger.LOG_FILE)
+    logger.info ("Logging to %s" % row.logger.LOG_FILE)
     gis = GIS("https://www.arcgis.com", c.AGOL_OWNER_ID, keyring.get_password('AGOL', c.AGOL_OWNER_ID))
 
     run (gis, SOURCE_SDE_ORG, TARGET_AGOL_ORG)
