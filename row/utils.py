@@ -2,7 +2,7 @@
 
 import row.constants as c
 
-def get_item (gis, registry_tag, org_id=None):
+def get_item_from_registry_tag (gis, registry_tag, org_id=None):
     expected_tags = [registry_tag] + ([org_id.lower()] if org_id is not None else [])
     query_string = f"owner:{c.AGOL_OWNER_ID} AND tags:{registry_tag}" if org_id is None else f"owner:{c.AGOL_OWNER_ID} AND tags:{','.join(expected_tags)}"
     
@@ -24,6 +24,6 @@ def get_layer (gis, item, layer_idx):
 
 
 def get_layer_from_tag (gis, registry_tag, layer_idx, org_id=None):
-    item = get_item (gis, registry_tag, org_id)
+    item = get_item_from_registry_tag (gis, registry_tag, org_id)
     return get_layer (gis, item, layer_idx)
 

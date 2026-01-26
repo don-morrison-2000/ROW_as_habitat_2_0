@@ -10,7 +10,7 @@ logger = row.logger.get('row_log')
 
 
 def create(gis, source_item, target_org_id):
-    tag = row.adm.adm_utils.get_item_registry_tag(source_item)
+    tag = row.adm.adm_utils.get_registry_tag_from_item(source_item)
     logger.info (f"{target_org_id}: Creating new {source_item.type} item with tag {tag}")
     target_item = gis.content.clone_items([source_item], folder=target_org_id, search_existing_items=False)[0]
     target_item.update( {'tags': f"{tag},{target_org_id.lower()}"} )

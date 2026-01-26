@@ -96,6 +96,13 @@ def open_log_file (fn, tool_name):
     return lf
     
 
+def get_desc_from_tag (gis, tag):
+    return f"{row.utils.get_item_from_registry_tag (gis, tag, c.MODEL_ORG_ID).title}.  tag: {tag}"
+
+def get_tag_from_desc (gis, desc):
+    return desc.split()[-1]
+
+
 def close_log_file (lf):
     lf.close()
     return

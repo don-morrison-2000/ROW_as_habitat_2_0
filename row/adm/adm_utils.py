@@ -17,7 +17,17 @@ def login_as_admin ():
 
 
 def is_folder_exists (gis, folder_name):
-    return folder_name in [f['title'] for f in gis.users.me.folders]
+    return get_folder(gis, folder_name) is not None
+
+
+def get_folder (gis, folder_name):
+    folders = [f for f in gis.content.folders.list() if f.name == folder_name]
+    if len(folders) == 0:
+        return None
+    elif len(folders) == 1:
+        return folders[0]
+    else:
+        raise Exception (f'Duplicate folder names: {folders}')
 
 
 def get_group_from_registry_tag (gis, org_id, tag):
@@ -27,10 +37,10 @@ def get_group_from_registry_tag (gis, org_id, tag):
     elif len(groups) == 1:
         return groups[0]
     else:
-        raise Exception ("{org_id.lower()} and {tag} tags used in multiple groups: {groups}")
+        raise Exception (f"{org_id.lower()} and {tag} tags used in multiple groups: {groups}")
 
 
-def get_item_registry_tag (item):
+def get_registry_tag_from_item (item):
     registered_tags = [r['tag'] for r in row.registry.ORG_ITEMS_REGISTRY]
     tags = [t for t in item.tags if t in registered_tags]
     if len(tags) == 0:
@@ -41,7 +51,7 @@ def get_item_registry_tag (item):
         raise Exception ("{item} has multiple registered tags: {tags}") 
     
 
-def get_group_registry_tag (group):
+def get_registry_tag_from_group (group):
     registered_tags = [r['tag'] for r in row.registry.ORG_GROUPS_REGISTRY]
     group_tags = [g for g in group.tags if g in registered_tags]
     if len(group_tags) == 0:
@@ -53,7 +63,7 @@ def get_group_registry_tag (group):
 
 
 def get_item_registry_spec (item):
-    registered_tag = get_item_registry_tag (item)
+    registered_tag = get_registry_tag_from_item (item)
     if registered_tag is None:
         raise Exception (f"Item {item.type} '{item.title}' has no registered item tag. Current tags: {item.tags}")
     else:
@@ -61,7 +71,11 @@ def get_item_registry_spec (item):
     
 
 def get_registered_items (gis, org_id):  
-    return [i for i in gis.users.me.items(folder=org_id, max_items=1000) if get_item_registry_tag(i) is not None]
+    return [i for i in gis.users.me.items(folder=org_id, max_items=1000) if get_registry_tag_from_item(i) is not None]
+
+def get_registered_groups (gis, org_id):
+    tags = [r['tag'] for r in row.registry.ORG_GROUPS_REGISTRY]  
+    return [get_group_from_registry_tag (gis, org_id, tag) for tag in tags]
 
 
 def get_org_spec (org_id):

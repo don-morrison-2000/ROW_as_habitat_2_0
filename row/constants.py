@@ -16,7 +16,8 @@ ADMIN_FOLDER = 'ROW2_Admin'
 ORGS = {
                 'ROW2_Model_Org': {'name': MODEL_ORG_NAME, 'extended_sharing_level': SharingLevel.PRIVATE},
                 'ROW2_DEVOrgA': {'name': 'Test Organization A', 'extended_sharing_level': SharingLevel.PRIVATE},
-                'ROW2_DEVOrgB': {'name': 'Test Organization B', 'extended_sharing_level': SharingLevel.PRIVATE}    
+                'ROW2_DEVOrgB': {'name': 'Test Organization B', 'extended_sharing_level': SharingLevel.PRIVATE},
+                'ROW2_DEVOrgC': {'name': 'Test Organization C', 'extended_sharing_level': SharingLevel.PRIVATE},        
         }
 
 

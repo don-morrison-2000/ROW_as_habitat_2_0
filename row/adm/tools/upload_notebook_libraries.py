@@ -4,14 +4,38 @@ import arcpy
 from arcgis.gis import GIS
 import row.constants as c
 import row.utils
+import row.registry
 import row.adm.adm_utils
 from glob import glob
+import re
 
 import row.logger
 logger = row.logger.get('row_log')
 
 
+def getParameterInfo(gis):
+    nb_id = arcpy.Parameter("notebook", "Notebook", "Input", "String", "Required")
+    nb_id.filter.type = "ValueList"
+    nb_id.filter.list = [f"{row.utils.get_item_from_registry_tag (gis, r['tag']).title}.  tag: {r['tag']}" for r in row.registry.CODE_ITEMS_REGISTRY]
+    nb_id.value = nb_id.filter.list[0]
+    return [nb_id]
+
+def updateParameters(gis, params):
+    return
+
+def execute (gis, params):
+    code_spec = [r for r in row.registry.CODE_ITEMS_REGISTRY if r['tag'] == params[0].value.split()[-1]][0] 
+    run (gis, code_spec)
+
+#--------------------------------------------------------------------------------------------------
+
 def run (gis, code_registry_spec):
+    logger.info ("Logging to %s" % row.logger.LOG_FILE)
+    logger.info (f"code_registry_spec: {code_registry_spec}")
+
+    if gis is None:
+        gis = row.adm.adm_utils.login_as_admin ()
+
     output_path = os.path.join(arcpy.env.scratchFolder, 'notebook_upload.zip')
     with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for path in code_registry_spec['files']:
@@ -19,7 +43,7 @@ def run (gis, code_registry_spec):
                 zipf.write(file_path, file_path.removeprefix(c.CODE_BASE))
     logger.info (f"Files zipped to {output_path}")
 
-    gis_code_item = row.utils.get_item (gis, code_registry_spec['tag'])
+    gis_code_item = row.utils.get_item_from_registry_tag (gis, code_registry_spec['tag'])
     if gis_code_item is None:
         logger.info (f"Creating a new code item with tag '{code_registry_spec['tag']}'. Please update the title and description in ArcGIS Online")
         gis_code_item = gis.content.add(item_properties={'title': 'please give me a title', 'type': 'Code Sample', 'tags': code_registry_spec['tag']}, folder=c.SINGLETONS_FOLDER)

@@ -9,6 +9,14 @@ logger = row.logger.get('row_log')
 import json
 from datetime import datetime as dt, UTC
 
+# def clone_item (gis, source_item, target_folder_name, tags):
+#     logger.info (f"Cloning: {source_item.type} '{source_item.title}'")
+#     cloned_item = gis.content.clone_items([source_item], folder=target_folder_name, search_existing_items=True)[0]
+#     cloned_item.update({'typeKeywords'  : [k for k  in cloned_item.typeKeywords if not k.startswith('source-')],
+#                         'tags'          : tags,
+#                     }) 
+#     return cloned_item
+
 
 def propagate_item (gis, source_item, target_item, source_org_id, target_org_id, replacement_list):
     logger.debug (f"{target_org_id}: Finding text replacements for {target_item.type} '{target_item.title}'")
@@ -20,7 +28,7 @@ def propagate_item (gis, source_item, target_item, source_org_id, target_org_id,
         'title':        row.adm.adm_utils.fixup_json (source_item.title, text_replacements, []), 
         'snippet':      row.adm.adm_utils.fixup_json (source_item.snippet, text_replacements, []), 
         'description':  row.adm.adm_utils.fixup_json (source_item.description, text_replacements, []),
-        'tags':         [row.adm.adm_utils.get_item_registry_tag (source_item), target_org_id.lower()], 
+        'tags':         [row.adm.adm_utils.get_registry_tag_from_item (source_item), target_org_id.lower()], 
         'typeKeywords': source_item.typeKeywords,
         'categories':   source_item.categories,
         })
@@ -28,19 +36,19 @@ def propagate_item (gis, source_item, target_item, source_org_id, target_org_id,
     logger.debug (f"{target_org_id}: Updating item data")
     target_item.update({'text': row.adm.adm_utils.fixup_json (source_item.get_data(), [r for r in text_replacements if r[0] != r[1]], [])})
 
-    #update_item_resource_files (gis, source_item, target_item)
-    propagate_item_resources (gis, source_item, target_item)
-    update_item_sharing_level (gis, target_item, target_org_id)
+    __propagate_item_resources (gis, source_item, target_item)
+    __propagate_item_sharing_level (gis, target_org_id, target_item)
+    __propagate_item_group_sharing (gis, target_org_id, target_item)
 
     return
 
 
-def propagate_item_resources (gis, source_item, target_item):
+def __propagate_item_resources (gis, source_item, target_item):
     target_item = gis.content.get(target_item.id)
 
     source_resources = {r['resource']:r for r in source_item.resources.list()}
     target_resources = {r['resource']:r for r in target_item.resources.list()} 
-       
+
     logger.debug (f"Updating {len(source_resources)} {source_item.type} resource files")
     adds = [r for r in source_resources.keys() if r not in target_resources.keys()]
     updates = [r for r in source_resources.keys() if r in target_resources.keys()]
@@ -62,7 +70,7 @@ def propagate_item_resources (gis, source_item, target_item):
 
 
 
-def update_item_sharing_level (gis, target_item, target_org_id):
+def __propagate_item_sharing_level (gis, target_org_id, target_item):
     org_spec = row.adm.adm_utils.get_org_spec (target_org_id)
     item_spec = row.adm.adm_utils.get_item_registry_spec (target_item)
     if item_spec['allow_extended_sharing']:
@@ -90,4 +98,22 @@ def propagate_field_infos (source_field_infos, target_field_infos, target_featur
     if len(edits) > 0:
         logger.debug (f"Editing fields in layer/table {target_feature_layer_manager.properties.name}: {edits}")     
         target_feature_layer_manager.update_definition({"fields": edits})
+    return
+
+
+
+def __propagate_item_group_sharing (gis, target_org_id, target_item):
+    current_org_groups = {g.id: g for g in gis.groups.search(f"owner:ROW_Admin AND tags:{target_org_id}")}
+    current_item_shares  = {g.id: g for g in target_item.sharing.groups.list()}
+    sharing_tags = row.adm.adm_utils.get_item_registry_spec(target_item)['group_sharing']
+    for group_id in current_org_groups.keys():
+        group_tag = row.adm.adm_utils.get_registry_tag_from_group(current_org_groups[group_id])
+        if group_tag is not None:
+            if group_tag not in sharing_tags and group_id in current_item_shares.keys():
+                logger.debug (f"{target_org_id}: Removing {target_item.type} '{target_item.title}' from group '{current_org_groups[group_id]}'")
+                target_item.sharing.groups.remove(current_org_groups[group_id])
+            elif group_tag in sharing_tags and group_id not in current_item_shares.keys():
+                logger.debug (f"{target_org_id}: Adding {target_item.type} '{target_item.title}' to group '{current_org_groups[group_id]}'")
+                target_item.sharing.groups.add(current_org_groups[group_id])
+
     return

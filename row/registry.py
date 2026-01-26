@@ -106,7 +106,8 @@ CODE_ITEMS_REGISTRY = [
                         os.path.join(c.ROW_BASE, 'constants.py'),
                         os.path.join(c.ROW_BASE, 'registry.py'),
                         os.path.join(c.ROW_BASE, 'utils.py'),
-                        os.path.join(c.ROW_BASE, 'notebook', '*.py'),
+                        os.path.join(c.ROW_BASE, 'usr', 'usr_utils*.py'),
+                        os.path.join(c.ROW_BASE, 'usr', 'tools', 'nb_test', '*.py'),
                 ]
         }
 ]

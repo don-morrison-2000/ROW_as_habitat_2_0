@@ -11,11 +11,11 @@ logger = row.logger.get('row_log')
 
 
 def create (gis, source_item, target_org_id):
-    tag = row.adm.adm_utils.get_item_registry_tag(source_item)
+    tag = row.adm.adm_utils.get_registry_tag_from_item(source_item)
     logger.info (f"{target_org_id}: Creating new {source_item.type} item with tag {tag}")
     # new_item = gis.content.add(item_properties={'title': 'tbd', 'type': source_item.type, 'tags': f"{tag},{target_org_id.lower()}"}, folder=target_org_id)
     item_properties = {
-        "title": "tbd",
+        "title": f"{tag}_{target_org_id.lower()}",
         "tags": f"{tag},{target_org_id.lower()}",
         "text": '{}',
         "type": source_item.type
