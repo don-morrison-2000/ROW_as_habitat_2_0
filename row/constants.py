@@ -34,4 +34,11 @@ ADMIN_EVENT_DELETE_ORG_DATA = 'DeleteOrgData'
 ADMIN_EVENT_ADMIN_ALERT = "AdminAlert"
 ADMIN_EVENT_CHANGE_PREMIUM = 'ChangePremiumContent'
 
+
+EXECUTION_ENV_CMD_LINE = 'Comand line' 
+EXECUTION_ENV_PRO_TOOLBOX = 'Pro toolbox'
+EXECUTION_ENV_NOTEBOOK = 'Notebook'
+EXECUTION_ENV_NOTEBOOK_GEO_TASK = 'Notebook geoprocessing task'
+
+ 
  

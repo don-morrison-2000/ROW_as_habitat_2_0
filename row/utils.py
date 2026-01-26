@@ -1,5 +1,6 @@
 
-
+import os
+import arcpy
 import row.constants as c
 
 def get_item_from_registry_tag (gis, registry_tag, org_id=None):
@@ -26,4 +27,16 @@ def get_layer (gis, item, layer_idx):
 def get_layer_from_tag (gis, registry_tag, layer_idx, org_id=None):
     item = get_item_from_registry_tag (gis, registry_tag, org_id)
     return get_layer (gis, item, layer_idx)
+
+
+def get_exec_env ():
+    if "ENB_JOBID" in os.environ:
+        return c.EXECUTION_ENV_NOTEBOOK
+        #lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task
+        lf = open(os.path.join('/tmp', fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task        
+    else:
+        if  os.path.isdir('/arcgis/home'):
+            lf = open(os.path.join('/arcgis/home', fn), 'w',encoding='utf-8')        # Running in notebook
+        else:
+            lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running from command line
 
