@@ -14,6 +14,8 @@ import row.usr.usr_utils
 import row.usr.tools.nb_test.nb_test_3
 import row.usr.tools.nb_test_logging.nb_test_4
 
+import row.adm.adm_utils
+
 import importlib
 
 import row.logger
@@ -45,7 +47,7 @@ class Test:
 
         fl_tag = arcpy.Parameter("fl_id", "Feature Layer", "Input", "String", "Required")
         fl_tag.filter.type = "ValueList"
-        fl_tag.filter.list = [row.usr.usr_utils.get_desc_from_tag(g_gis, r['tag']) for r in row.registry.ORG_ITEMS_REGISTRY if r['type'] == 'Feature Service']
+        fl_tag.filter.list = [row.adm.adm_utils.get_item_desc_from_tag(g_gis, t, c.MODEL_ORG_ID) for t,r in row.registry.ORG_ITEMS_REGISTRY.items() if  r['type'] == 'Feature Service']
         fl_tag.value = fl_tag.filter.list[0]
 
         result = arcpy.Parameter('result', 'Result', 'Output', 'String', 'Derived')
@@ -88,7 +90,7 @@ class TestLogger:
 
         fl_tag = arcpy.Parameter("fl_id", "Feature Layer", "Input", "String", "Required")
         fl_tag.filter.type = "ValueList"
-        fl_tag.filter.list = [row.usr.usr_utils.get_desc_from_tag(g_gis, r['tag']) for r in row.registry.ORG_ITEMS_REGISTRY if r['type'] == 'Feature Service']
+        fl_tag.filter.list = [row.adm.adm_utils.get_item_desc_from_tag(g_gis, t, c.MODEL_ORG_ID) for t,r in row.registry.ORG_ITEMS_REGISTRY.items() if  r['type'] == 'Feature Service']
         fl_tag.value = fl_tag.filter.list[0]
 
         result = arcpy.Parameter('result', 'Result', 'Output', 'String', 'Derived')

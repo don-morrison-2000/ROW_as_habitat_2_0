@@ -13,6 +13,7 @@ logger = row.logger.get('row_log')
 
 import row.constants as c
 import row.migration.migration_specs 
+import row.registry
 
 import shutil
 import zipfile
@@ -168,7 +169,7 @@ def run():
         print (str(x))
         for migration_spec in [m for m in row.migration.migration_specs.MIGRATION_SPECS if m['type'] == 'Feature Service']:
 
-            if len([r for r in c.ORG_ITEMS_REGISTRY if r['tag'] == migration_spec['tag']]) != 1:
+            if len([t for t in row.registry.keys() if t == migration_spec['tag']]) != 1:
                 raise Exception (f"Migration spec and organization registry are out of sync with tag: {migration_spec['tag']}")
 
             logger.info (f"Processing {migration_spec['title']}. Importing SDE objects") 

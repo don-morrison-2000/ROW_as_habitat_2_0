@@ -41,7 +41,7 @@ def create (gis, target_org_id):
     for source_item in row.adm.adm_utils.get_registered_items (gis, c.MODEL_ORG_ID):
         TYPE_TO_OBJ[source_item.type].create(gis, source_item, target_org_id)
 
-    update (gis, target_org_id, [r['tag'] for r in row.registry.ORG_ITEMS_REGISTRY], [r['tag'] for r in row.registry.ORG_GROUPS_REGISTRY])
+    update (gis, target_org_id, row.registry.ORG_ITEMS_REGISTRY.keys(), row.registry.ORG_GROUPS_REGISTRY.keys())
 
     return
 
@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
 
     # UPDATE ALL
-    update (gis, 'ROW2_DEVOrgB', [r['tag'] for r in row.registry.ORG_ITEMS_REGISTRY], [r['tag'] for r in row.registry.ORG_GROUPS_REGISTRY])
+    update (gis, 'ROW2_DEVOrgB', row.registry.ORG_ITEMS_REGISTRY.keys(), row.registry.ORG_GROUPS_REGISTRY.keys())
 
     #delete (gis, 'ROW2_DEVOrgB', False, False)
 

@@ -41,8 +41,7 @@ def get_group_from_registry_tag (gis, org_id, tag):
 
 
 def get_registry_tag_from_item (item):
-    registered_tags = [r['tag'] for r in row.registry.ORG_ITEMS_REGISTRY]
-    tags = [t for t in item.tags if t in registered_tags]
+    tags = [t for t in item.tags if t in row.registry.ORG_ITEMS_REGISTRY.keys()]
     if len(tags) == 0:
         return None
     elif len(tags) == 1:
@@ -52,8 +51,7 @@ def get_registry_tag_from_item (item):
     
 
 def get_registry_tag_from_group (group):
-    registered_tags = [r['tag'] for r in row.registry.ORG_GROUPS_REGISTRY]
-    group_tags = [g for g in group.tags if g in registered_tags]
+    group_tags = [g for g in group.tags if g in row.registry.ORG_GROUPS_REGISTRY.keys()]
     if len(group_tags) == 0:
         return None
     elif len(group_tags) == 1:
@@ -67,15 +65,32 @@ def get_item_registry_spec (item):
     if registered_tag is None:
         raise Exception (f"Item {item.type} '{item.title}' has no registered item tag. Current tags: {item.tags}")
     else:
-        return [r for r in row.registry.ORG_ITEMS_REGISTRY if r['tag'] == registered_tag][0]
+        return row.registry.ORG_ITEMS_REGISTRY[registered_tag]
     
 
 def get_registered_items (gis, org_id):  
     return [i for i in gis.users.me.items(folder=org_id, max_items=1000) if get_registry_tag_from_item(i) is not None]
 
-def get_registered_groups (gis, org_id):
-    tags = [r['tag'] for r in row.registry.ORG_GROUPS_REGISTRY]  
-    return [get_group_from_registry_tag (gis, org_id, tag) for tag in tags]
+def get_registered_groups (gis, org_id): 
+    return [get_group_from_registry_tag (gis, org_id, tag) for tag in row.registry.ORG_GROUPS_REGISTRY.keys()]
+
+
+def get_item_desc_from_tag (gis, tag, org_id=None):
+    item = row.utils.get_item_from_registry_tag (gis, tag, org_id)
+    if item is not None:
+        return f"{item.title}.  tag: {tag}"
+    else:
+        return f"tag: {tag}"
+
+def get_group_desc_from_tag (gis, tag, org_id=None):
+    group = get_group_from_registry_tag (gis, tag, org_id)
+    if group is not None:
+        return f"{group.title}.  tag: {tag}"
+    else:
+        return f"tag: {tag}"
+
+def get_tag_from_desc (gis, desc):
+    return desc.split()[-1]
 
 
 def get_org_spec (org_id):
@@ -133,3 +148,6 @@ def wait_on_job (job):
     while not job.done():
         time.sleep(0.1)
     return job.result()
+
+def get_param_by_name (params, name):
+    return [p for p in params if p.name == name][0]

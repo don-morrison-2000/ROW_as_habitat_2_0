@@ -16,7 +16,7 @@ import row.logger
 logger = row.logger.get('row_log')
 
 def get_item_registry_spec (item_registry_tag):
-    return [s for s in row.registry.ORG_ITEMS_REGISTRY if s['tag'] == item_registry_tag][0]
+    return row.registry.ORG_ITEMS_REGISTRY[item_registry_tag]
 
 
 def write_output_parameter_string (parm_name, value):
@@ -69,21 +69,13 @@ def log_tool_completion (gis, msg, org_id, user, tool_name):
 #     return lf
     
 
-# def get_desc_from_tag (gis, tag):
+# def get_item_desc_from_tag (gis, tag):
 #     return f"{row.utils.get_item_from_registry_tag (gis, tag, c.MODEL_ORG_ID).title}.  tag: {tag}"
 
 # def get_tag_from_desc (gis, desc):
 #     return desc.split()[-1]
 
-def get_desc_from_tag (gis, tag, org_id=None):
-    item = row.utils.get_item_from_registry_tag (gis, tag, org_id)
-    if item is not None:
-        return f"{item.title}.  tag: {tag}"
-    else:
-        return f"tag: {tag}"
 
-def get_tag_from_desc (gis, desc):
-    return desc.split()[-1]
 
 
 def log(lf,msg):

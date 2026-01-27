@@ -56,38 +56,3 @@ def update (gis, source_group, target_group, source_org_id, target_org_id):
     return
 
 
-
-
-# def update_org_group_properties (gis, source_org_id, target_org_id):
-#     for tag in [g['tag'] for g in row.registry.ORG_GROUPS_REGISTRY]:
-#         source_org_name = row.adm.adm_utils.get_org_spec(source_org_id)['name']
-#         target_org_name = row.adm.adm_utils.get_org_spec(target_org_id)['name']
-
-#         source_group = row.adm.adm_utils.get_group_from_registry_tag (gis, source_org_id, tag)
-#         target_group = row.adm.adm_utils.get_group_from_registry_tag (gis, target_org_id, tag)
-#         title = source_group.title.replace(source_org_id, target_org_id).replace(source_org_name,target_org_name)
-#         if target_group is None:
-#             tags = f"{tag}, {target_org_id.lower()}"
-#             logger.debug (f"{target_org_id}: Creating group '{title}'")
-#             target_group = gis.groups.create(title='tbd', tags=tags, description='tbd', users_update_items=False)
- 
-#         logger.debug (f"{target_org_id}: Updating group '{title}'")
-#         target_group.update (
-#             title = title,
-#             description = source_group.title.replace(source_org_id, target_org_id).replace(source_org_name,target_org_name) if source_group.description is not None else '',
-#             snippet  = source_group.snippet.replace(source_org_id, target_org_id).replace(source_org_name,target_org_name) if source_group.snippet is not None else '',
-#             is_invitation_only = source_group.isInvitationOnly,
-#             sort_field = source_group.sortField,
-#             sort_order = source_group.sortOrder, 
-#             is_view_only = source_group.isViewOnly, 
-#             #max_file_size = source_group.maxFileSize, 
-#             #users_update_items = source_group.users_update_items, 
-#             #clear_empty_fields = source_group.clear_empty_fields, 
-#             display_settings = GROUP_DISPLAY_SETTINGS[source_group.displaySettings['itemTypes']] if source_group.displaySettings['itemTypes'] in GROUP_DISPLAY_SETTINGS.keys() else 'all', 
-#             #is_open_data = source_group.is_open_data, 
-#             #leaving_disallowed = source_group.leaving_disallowed, 
-#             #member_access = source_group.member_access, 
-#             hidden_members = source_group.hiddenMembers, 
-#             #membership_access = source_group.is_open_data, 
-#             autojoin = source_group.autoJoin)
-#     return
