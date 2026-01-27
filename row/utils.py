@@ -1,5 +1,5 @@
 
-import os
+import os,sys
 import arcpy
 import row.constants as c
 
@@ -29,14 +29,14 @@ def get_layer_from_tag (gis, registry_tag, layer_idx, org_id=None):
     return get_layer (gis, item, layer_idx)
 
 
+
 def get_exec_env ():
     if "ENB_JOBID" in os.environ:
+        return c.EXECUTION_ENV_NOTEBOOK_GEO_TASK        
+    elif os.path.isdir('/arcgis/home'):
         return c.EXECUTION_ENV_NOTEBOOK
-        #lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task
-        lf = open(os.path.join('/tmp', fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task        
+    elif len(sys.argv[0]) == 0:
+        return c.EXECUTION_ENV_PRO_TOOLBOX
     else:
-        if  os.path.isdir('/arcgis/home'):
-            lf = open(os.path.join('/arcgis/home', fn), 'w',encoding='utf-8')        # Running in notebook
-        else:
-            lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running from command line
+        return c.EXECUTION_ENV_CMD_LINE
 

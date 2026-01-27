@@ -12,38 +12,11 @@ import row.constants as c
 import row.registry
 import row.utils
 
+import row.logger
+logger = row.logger.get('row_log')
+
 def get_item_registry_spec (item_registry_tag):
     return [s for s in row.registry.ORG_ITEMS_REGISTRY if s['tag'] == item_registry_tag][0]
-
-# def get_item_layer_spec (item_spec, item_layer_spec_id):
-#     return [l for l in item_spec['layers'] if l['id'] == item_layer_spec_id][0]
-
-# def get_org_layer (gis, item_spec_id, item_layer_spec_id, org_id):
-#     item_spec = get_item_spec (item_spec_id)
-#     item_layer_spec = get_item_layer_spec (item_spec, item_layer_spec_id)
-#     org_item = get_org_item (gis, item_spec['title'],  item_spec['type'], org_id)
-#     if len(org_item.layers) > 0:
-#         org_layer = [l for l in org_item.layers if l.properties['name'] == item_layer_spec['title']]
-#         if len(org_layer) == 1:
-#             return org_layer[0]
-#     if len(org_item.tables) > 0:
-#         org_table = [t for t in org_item.tables if t.properties['name'] == item_layer_spec['title']]
-#         if len(org_table) == 1:
-#             return org_table[0]
-#     raise Exception (f"Could not find {org_id} layer '{item_layer_spec['title']}' in {item_spec['type']} '{item_spec['title']}'")
-            
-
-
-
-
-
-
-# def get_org_item (gis, item_registry_spec, org_id):
-#     query_string = f"owner:row_admin AND tags:{org_id.lower()},{item_registry_spec['tag']} AND type:{item_registry_spec['type']}"
-#     for item in gis.content.search(query=query_string, max_items=-1):
-#         if item.owner == c.AGOL_OWNER_ID and org_id.lower() in item.tags and item_registry_spec['tag'] in item.tags:
-#             return gis.content.get(item.id)
-#     raise Exception (f"Can not access {org_id} {item_registry_spec['type']} '{item_registry_spec['tag']}' as user {gis.users.me.username}")
 
 
 def write_output_parameter_string (parm_name, value):
@@ -75,37 +48,43 @@ def log_tool_completion (gis, msg, org_id, user, tool_name):
     return
 
     
-def open_log_file (fn, tool_name):
-    if "ENB_JOBID" in os.environ:
-        #lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task
-        lf = open(os.path.join('/tmp', fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task        
-    else:
-        if  os.path.isdir('/arcgis/home'):
-            lf = open(os.path.join('/arcgis/home', fn), 'w',encoding='utf-8')        # Running in notebook
-        else:
-            lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running from command line
+# def open_log_file (fn, tool_name):
+#     if "ENB_JOBID" in os.environ:
+#         #lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task
+#         lf = open(os.path.join('/tmp', fn), 'w',encoding='utf-8') # Running in notebook-based geoprocessing task        
+#     else:
+#         if  os.path.isdir('/arcgis/home'):
+#             lf = open(os.path.join('/arcgis/home', fn), 'w',encoding='utf-8')        # Running in notebook
+#         else:
+#             lf = open(os.path.join(arcpy.env.scratchFolder, fn), 'w',encoding='utf-8') # Running from command line
 
-    lf.write('<!DOCTYPE html><html><head><style>log_output {font-family: monospace}</style></head><body style="font-family: monospace;"><hr><p>Log<br><log_output>')
-    log (lf, f"{tool_name} starting")
-    log (lf, f"log file: {os.path.abspath(lf.name)}")
-    log (lf, f"os.getcwd(): {os.getcwd()}")
-    log (lf, f"os.listdir(os.getcwd()): {os.listdir(os.getcwd())}")
-    log (lf, f"arcpy.env.scratchFolder: {arcpy.env.scratchFolder}")
-    log (lf, f"os.listdir(arcpy.env.scratchFolder): {os.listdir(arcpy.env.scratchFolder)}")
-    log (lf, f"os.path.abspath(arcpy.env.scratchFolder): {os.path.abspath(arcpy.env.scratchFolder)}")
-    return lf
+#     lf.write('<!DOCTYPE html><html><head><style>log_output {font-family: monospace}</style></head><body style="font-family: monospace;"><hr><p>Log<br><log_output>')
+#     log (lf, f"{tool_name} starting")
+#     log (lf, f"log file: {os.path.abspath(lf.name)}")
+#     log (lf, f"os.getcwd(): {os.getcwd()}")
+#     log (lf, f"os.listdir(os.getcwd()): {os.listdir(os.getcwd())}")
+#     log (lf, f"arcpy.env.scratchFolder: {arcpy.env.scratchFolder}")
+#     log (lf, f"os.listdir(arcpy.env.scratchFolder): {os.listdir(arcpy.env.scratchFolder)}")
+#     log (lf, f"os.path.abspath(arcpy.env.scratchFolder): {os.path.abspath(arcpy.env.scratchFolder)}")
+#     return lf
     
 
-def get_desc_from_tag (gis, tag):
-    return f"{row.utils.get_item_from_registry_tag (gis, tag, c.MODEL_ORG_ID).title}.  tag: {tag}"
+# def get_desc_from_tag (gis, tag):
+#     return f"{row.utils.get_item_from_registry_tag (gis, tag, c.MODEL_ORG_ID).title}.  tag: {tag}"
+
+# def get_tag_from_desc (gis, desc):
+#     return desc.split()[-1]
+
+def get_desc_from_tag (gis, tag, org_id=None):
+    item = row.utils.get_item_from_registry_tag (gis, tag, org_id)
+    if item is not None:
+        return f"{item.title}.  tag: {tag}"
+    else:
+        return f"tag: {tag}"
 
 def get_tag_from_desc (gis, desc):
     return desc.split()[-1]
 
-
-def close_log_file (lf):
-    lf.close()
-    return
 
 def log(lf,msg):
     debug (msg)

@@ -13,10 +13,9 @@ import keyring
 import row.logger
 logger = row.logger.get('row_log')
 
-TOOL_NAME = 'Geoprocessing Test'
+TOOL_NAME = 'Geoprocessing Logging Test'
 
 def run (gis, org_id, fl_tag):
-
     logger.info (f"Logging to {row.logger.LOG_FILE}")
 
     # Output parameters
@@ -45,7 +44,7 @@ def run (gis, org_id, fl_tag):
         arcpy.AddWarning(result)
 
     finally:
-        logger.info (f"Updating tool completion {result}")
+        logger.info(f"Updating tool completion {result}")
         row.usr.usr_utils.log_tool_completion (gis, result,  org_id, gis.users.me.username, TOOL_NAME)
         return result, records, log_file["url"]
 
@@ -53,9 +52,9 @@ if __name__ == '__main__':
     if "ENB_JOBID" not in os.environ:
         gis = GIS("https://www.arcgis.com", c.AGOL_OWNER_ID, keyring.get_password('AGOL', c.AGOL_OWNER_ID))
         result, records, log_file = run(gis, c.MODEL_ORG_ID, 'row2item_org_centerlines')
-        logger.info (str(result))
-        logger.info (str(records))
-        logger.info (str(log_file))
+        print (str(result))
+        print (str(records))
+        print (str(log_file))
 
     
 

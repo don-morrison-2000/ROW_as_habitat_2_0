@@ -1,4 +1,4 @@
-import os
+import os, sys
 import zipfile
 import arcpy
 from arcgis.gis import GIS
@@ -6,28 +6,12 @@ import row.constants as c
 import row.utils
 import row.registry
 import row.adm.adm_utils
+import row.usr.usr_utils
 from glob import glob
 import re
 
 import row.logger
 logger = row.logger.get('row_log')
-
-
-def getParameterInfo(gis):
-    nb_id = arcpy.Parameter("notebook", "Notebook", "Input", "String", "Required")
-    nb_id.filter.type = "ValueList"
-    nb_id.filter.list = [f"{row.utils.get_item_from_registry_tag (gis, r['tag']).title}.  tag: {r['tag']}" for r in row.registry.CODE_ITEMS_REGISTRY]
-    nb_id.value = nb_id.filter.list[0]
-    return [nb_id]
-
-def updateParameters(gis, params):
-    return
-
-def execute (gis, params):
-    code_spec = [r for r in row.registry.CODE_ITEMS_REGISTRY if r['tag'] == params[0].value.split()[-1]][0] 
-    run (gis, code_spec)
-
-#--------------------------------------------------------------------------------------------------
 
 def run (gis, code_registry_spec):
     logger.info ("Logging to %s" % row.logger.LOG_FILE)
@@ -36,7 +20,7 @@ def run (gis, code_registry_spec):
     if gis is None:
         gis = row.adm.adm_utils.login_as_admin ()
 
-    output_path = os.path.join(arcpy.env.scratchFolder, 'notebook_upload.zip')
+    output_path = os.path.join(arcpy.env.scratchFolder, f"notebook_upload_{code_registry_spec['tag']}.zip")
     with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for path in code_registry_spec['files']:
             for file_path in glob(path):
@@ -62,5 +46,6 @@ if __name__ == '__main__':
     logger.info ("Logging to %s" % row.logger.LOG_FILE)
 
     gis = row.adm.adm_utils.login_as_admin ()
-    for code_spec in c.CODE_ITEMS_REGISTRY:
+    for code_spec in row.registry.CODE_ITEMS_REGISTRY:
+        row.usr.usr_utils.get_desc_from_tag (gis, code_spec['tag'])
         run (gis, code_spec)    

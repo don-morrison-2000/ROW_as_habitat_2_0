@@ -100,14 +100,26 @@ ADMIN_ITEMS_REGISTRY = [
 
 CODE_TAG_ROOT = 'row2code_'
 CODE_TAG_TEST_NOTEBOOK = f'{CODE_TAG_ROOT}test_code_1'
+CODE_TAG_TEST_LOGGING = f'{CODE_TAG_ROOT}test_logging'
 CODE_ITEMS_REGISTRY = [
         {'tag': CODE_TAG_TEST_NOTEBOOK, 'files': 
                 [
                         os.path.join(c.ROW_BASE, 'constants.py'),
+                        os.path.join(c.ROW_BASE, 'logger.py'),                        
                         os.path.join(c.ROW_BASE, 'registry.py'),
                         os.path.join(c.ROW_BASE, 'utils.py'),
                         os.path.join(c.ROW_BASE, 'usr', 'usr_utils*.py'),
                         os.path.join(c.ROW_BASE, 'usr', 'tools', 'nb_test', '*.py'),
+                ]
+        },
+        {'tag': CODE_TAG_TEST_LOGGING, 'files': 
+                [
+                        os.path.join(c.ROW_BASE, 'constants.py'),
+                        os.path.join(c.ROW_BASE, 'logger.py'),
+                        os.path.join(c.ROW_BASE, 'registry.py'),
+                        os.path.join(c.ROW_BASE, 'utils.py'),
+                        os.path.join(c.ROW_BASE, 'usr', 'usr_utils*.py'),
+                        os.path.join(c.ROW_BASE, 'usr', 'tools', 'nb_test_logging', '*.py'),
                 ]
         }
 ]

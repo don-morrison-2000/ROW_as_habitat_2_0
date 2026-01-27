@@ -14,6 +14,7 @@ import row.adm.tools.upload_notebook_libraries
 import row.adm.tools.create_org
 import row.adm.tools.delete_org
 import row.adm.tools.backup_org
+import row.usr.usr_utils
 import importlib
 
 
@@ -103,7 +104,7 @@ class UploadNotebookLibraries:
         importlib.reload(row.adm.tools.upload_notebook_libraries)
         nb_id = arcpy.Parameter("notebook", "Notebook", "Input", "String", "Required")
         nb_id.filter.type = "ValueList"
-        nb_id.filter.list = [f"{row.utils.get_item_from_registry_tag (g_gis, r['tag']).title}.  tag: {r['tag']}" for r in row.registry.CODE_ITEMS_REGISTRY]
+        nb_id.filter.list = [f"{row.usr.usr_utils.get_desc_from_tag (g_gis, r['tag'])}" for r in row.registry.CODE_ITEMS_REGISTRY]
         nb_id.value = nb_id.filter.list[0]
         return [nb_id]
 
